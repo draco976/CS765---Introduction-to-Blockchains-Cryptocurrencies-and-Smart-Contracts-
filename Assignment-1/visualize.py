@@ -6,10 +6,10 @@ from networkx.relabel import relabel_nodes
 from pathlib import Path
 
 # Function for the Blockchain tree Visualisation, ref: https://stackoverflow.com/a/29597209/2966723
-def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5):
+def hierarchy_pos(G, root=None, width=1., vert_gap = 2000, vert_loc = 0, xcenter = 0.5):
 
-    if not nx.is_tree(G):
-        raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
+    # if not nx.is_tree(G):
+    #     raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
 
     if root is None:
         if isinstance(G, nx.DiGraph):
@@ -17,7 +17,7 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
         else:
             root = random.choice(list(G.nodes))
 
-    def _hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5, pos = None, parent = None):
+    def _hierarchy_pos(G, root, width=1., vert_gap = 2000, vert_loc = 0, xcenter = 0.5, pos = None, parent = None):
         if pos is None:
             pos = {root:(xcenter,vert_loc)}
         else:
@@ -39,7 +39,6 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
 
 if __name__ == '__main__':
 
-    n = 10
     for i in range(1):
         filename = f"./data/treedata_{i}.txt"
     
@@ -47,17 +46,19 @@ if __name__ == '__main__':
         
         adj_dict ={}
         nodelist = []
+        time = {}
 
         with open(filename, 'r') as infile:
             
             tree_file = infile.read().split("\n")
-            tree_file = tree_file[2:-1]
+            tree_file = tree_file[3:-1]
             
             for line in tree_file:
                 entry = line.split(",")
                 
                 u = int(entry[1])
                 v = int(entry[0])
+                time[int(entry[0])] = round(float(entry[3]), 2)
                 
                 if u not in nodelist:
                     nodelist.append(u)
@@ -78,31 +79,20 @@ if __name__ == '__main__':
                 G.add_edge(u, v)
 
         print(nodelist)
-        
-   
-        # branches = branch_distr(adj_dict)
-        # max_branch = max(branches)
-        # min_branch = min(branches)
 
-        freq ={}
-        # for j in range(min_branch, max_branch+1):
-        #     freq[j]=0
-        
-        # for j in branches:
-        #     freq[j]+=1
-
-        length_i = list(freq.keys())
-        length = [str(j) for j in length_i]
-        frequency = list(freq.values())
+        time[1] = 0
 
         naming = {}
         for node in nodelist:
-            naming[node] = node
+            naming[node] = time[node]
         
         naming[1] = "G"
         
         relabel_nodes(G, naming, copy = False)
         pos = hierarchy_pos(G, "G")
+        fig = plt.figure()
+        fig.set_figheight(0.5*len(nodelist))
+        fig.set_figwidth(12)
         nx.draw(G, pos = pos, with_labels = True)
 
         Path("./graph").mkdir(parents=True, exist_ok=True)
